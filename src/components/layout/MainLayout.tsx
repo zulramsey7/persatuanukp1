@@ -62,11 +62,11 @@ export function MainLayout({ children }: MainLayoutProps) {
       <div className="flex-1 flex flex-col h-full overflow-hidden relative transition-all duration-300 ease-in-out pl-0 md:pl-[80px]" style={{ paddingLeft: sidebarCollapsed ? "80px" : "280px" }}>
         {/* Header */}
         <DashboardHeader 
-          toggleSidebar={() => setMobileMenuOpen(true)} 
+          onMenuToggle={() => setMobileMenuOpen(true)} 
+          showMenu={mobileMenuOpen}
+          unreadNotifications={0}
           isDarkMode={isDarkMode}
-          toggleTheme={toggleTheme}
-          user={user}
-          profile={profile}
+          onThemeToggle={toggleTheme}
         />
         
         {/* Scrollable Content */}
