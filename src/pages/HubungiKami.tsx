@@ -31,7 +31,7 @@ const HubungiKami = () => {
     {
       icon: Phone,
       title: "Telefon",
-      details: ["+60 10-285 8832 (Pengerusi-Kamal)", "+60 17-330 4906 (Setiausaha-Zulfikar)", "+60 11-110 76900 (Bendahari-A.Malik)],
+      details: ["+60 10-285 8832 (Pengerusi-Kamal)", "+60 17-330 4906 (Setiausaha-Zulfikar)", "+60 11-110 76900 (Bendahari-A.Malik)"],
       action: "Hubungi Sekarang",
       link: "tel:+60173304906"
     },
