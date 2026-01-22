@@ -20,7 +20,8 @@ import {
   ChevronRight,
   Image,
   Vote,
-  Home
+  Home,
+  Phone
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -60,6 +61,7 @@ export function DashboardSidebar({ collapsed, onToggle }: DashboardSidebarProps)
     { icon: Image, label: "Galeri", path: "/galeri" },
     { icon: Vote, label: "Undian", path: "/undian" },
     { icon: MessageSquare, label: "Aduan", path: "/aduan" },
+    { icon: Phone, label: "Hubungi Kami", path: "/hubungi-kami" },
     { icon: FolderOpen, label: "Dokumen", path: "/dokumen" },
   ];
 

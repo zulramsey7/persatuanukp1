@@ -10,7 +10,9 @@ import {
   Building2,
   Vote,
   MessageSquare,
-  ImageIcon
+  ImageIcon,
+  Phone,
+  Shield
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
@@ -158,14 +160,23 @@ export function QuickActions() {
       badgeColor: ""
     },
     {
-      icon: Building2,
-      label: isAdmin ? "Panel Admin" : "Hubungi Kami",
-      path: isAdmin ? "/admin" : "/hubungi-kami",
+      icon: Phone,
+      label: "Hubungi Kami",
+      path: "/hubungi-kami",
       gradient: "from-slate-500 to-gray-600",
       bgColor: "bg-slate-50 dark:bg-slate-900/20",
       badge: null,
       badgeColor: ""
-    }
+    },
+    ...(isAdmin ? [{
+      icon: Shield,
+      label: "Panel Admin",
+      path: "/admin",
+      gradient: "from-red-500 to-rose-600",
+      bgColor: "bg-red-50 dark:bg-red-900/20",
+      badge: null,
+      badgeColor: ""
+    }] : [])
   ];
 
   return (
