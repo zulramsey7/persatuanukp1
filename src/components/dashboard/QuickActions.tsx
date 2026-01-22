@@ -160,7 +160,7 @@ export function QuickActions() {
     {
       icon: Building2,
       label: isAdmin ? "Panel Admin" : "Hubungi Kami",
-      path: isAdmin ? "/admin" : "/profil",
+      path: isAdmin ? "/admin" : "/hubungi-kami",
       gradient: "from-slate-500 to-gray-600",
       bgColor: "bg-slate-50 dark:bg-slate-900/20",
       badge: null,

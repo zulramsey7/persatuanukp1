@@ -16,6 +16,7 @@ import Notifikasi from "./pages/Notifikasi";
 import Dokumen from "./pages/Dokumen";
 import Undian from "./pages/Undian";
 import Direktori from "./pages/Direktori";
+import HubungiKami from "./pages/HubungiKami";
 import Aduan from "./pages/Aduan";
 import ImbasQR from "./pages/ImbasQR";
 import Tetapan from "./pages/Tetapan";
