@@ -31,21 +31,21 @@ const HubungiKami = () => {
     {
       icon: Phone,
       title: "Telefon",
-      details: ["+60 17-330 4906 (Pengerusi)", "+60 12-345 6789 (Setiausaha)"],
+      details: ["+60 10-285 8832 (Pengerusi-Kamal)", "+60 17-330 4906 (Setiausaha-Zulfikar)", "+60 11-110 76900 (Bendahari-A.Malik)],
       action: "Hubungi Sekarang",
       link: "tel:+60173304906"
     },
     {
       icon: Mail,
       title: "Emel",
-      details: ["info@persatuanukp1.com", "aduan@persatuanukp1.com"],
+      details: ["persatuanukayperdana@gmail.com", "persatuanukayperdana@gmail.com"],
       action: "Hantar Emel",
       link: "mailto:info@persatuanukp1.com"
     },
     {
       icon: Clock,
       title: "Waktu Urusan",
-      details: ["Isnin - Jumaat: 9:00 pg - 5:00 ptg", "Sabtu & Ahad: Tutup"],
+      details: ["Setiap Hari boleh whatsapp/call"],
       action: null,
       link: null
     }
