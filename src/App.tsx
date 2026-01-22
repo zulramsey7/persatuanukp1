@@ -43,6 +43,7 @@ const App = () => (
           <Route path="/dokumen" element={<Dokumen />} />
           <Route path="/undian" element={<Undian />} />
           <Route path="/direktori" element={<Direktori />} />
+          <Route path="/hubungi-kami" element={<HubungiKami />} />
           <Route path="/aduan" element={<Aduan />} />
           <Route path="/tetapan" element={<Tetapan />} />
           <Route path="*" element={<NotFound />} />
