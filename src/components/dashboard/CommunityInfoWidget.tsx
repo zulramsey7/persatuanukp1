@@ -35,7 +35,7 @@ export function CommunityInfoWidget() {
       ] = await Promise.all([
         supabase.from("profiles").select("*", { count: "exact", head: true }),
         supabase.from("profiles").select("*", { count: "exact", head: true }).eq("status_ahli", "active"),
-        supabase.from("yuran_masuk").select("jumlah").eq("status", "dibayar"),
+        supabase.from("yuran_bulanan").select("jumlah").eq("status", "confirmed"),
         supabase.from("yuran_keluar").select("jumlah")
       ]);
 

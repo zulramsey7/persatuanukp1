@@ -14,7 +14,8 @@ import {
   LogOut,
   Users,
   MessageSquare,
-  Download
+  Download,
+  Phone
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { usePWA } from "@/hooks/usePWA";
@@ -95,6 +96,7 @@ export function MobileSideMenu({ isOpen, onClose }: MobileSideMenuProps) {
     { icon: Calendar, label: "Aktiviti", path: "/kalendar" },
     { icon: Image, label: "Galeri", path: "/galeri" },
     { icon: MessageSquare, label: "Aduan", path: "/aduan" },
+    { icon: Phone, label: "Hubungi Kami", path: "/hubungi-kami" },
     { icon: Bell, label: "Notifikasi", path: "/notifikasi" },
     { icon: Settings, label: "Tetapan", path: "/tetapan" },
   ];

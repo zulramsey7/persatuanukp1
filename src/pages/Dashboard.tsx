@@ -159,7 +159,7 @@ const Dashboard = () => {
   const fetchRecentData = async () => {
     try {
       const [incomes, expenses, notifs, members, allProfiles] = await Promise.all([
-        supabase.from("yuran_masuk").select("*").order("tarikh_bayar", { ascending: false }).limit(5),
+        supabase.from("yuran_bulanan").select("*").order("tarikh_bayar", { ascending: false }).limit(5),
         supabase.from("yuran_keluar").select("*").order("tarikh", { ascending: false }).limit(5),
         supabase.from("notifications").select("*").order("created_at", { ascending: false }).limit(5),
         supabase.from("profiles").select("*").order("created_at", { ascending: false }).limit(5),
@@ -228,24 +228,26 @@ const Dashboard = () => {
       }
 
       // Check recent income trend
-      const currentMonth = new Date().getMonth();
-      const lastMonth = currentMonth - 1;
+      const currentMonth = new Date().getMonth() + 1; // Month is 1-based in yuran_bulanan
+      const lastMonth = currentMonth === 1 ? 12 : currentMonth - 1;
       const currentYear = new Date().getFullYear();
+      const lastMonthYear = currentMonth === 1 ? currentYear - 1 : currentYear;
       
       const { data: currentMonthIncome, error: currentError } = await supabase
-        .from("yuran_masuk")
+        .from("yuran_bulanan")
         .select("jumlah")
-        .eq("status", "confirmed")
-        .gte("tarikh_bayar", new Date(currentYear, currentMonth, 1).toISOString());
+        .eq("status", "sudah_bayar")
+        .eq("bulan", currentMonth)
+        .eq("tahun", currentYear);
 
       if (currentError) throw currentError;
 
       const { data: lastMonthIncome, error: lastError } = await supabase
-        .from("yuran_masuk")
+        .from("yuran_bulanan")
         .select("jumlah")
-        .eq("status", "confirmed")
-        .gte("tarikh_bayar", new Date(currentYear, lastMonth, 1).toISOString())
-        .lt("tarikh_bayar", new Date(currentYear, currentMonth, 1).toISOString());
+        .eq("status", "sudah_bayar")
+        .eq("bulan", lastMonth)
+        .eq("tahun", lastMonthYear);
 
       if (lastError) throw lastError;
 

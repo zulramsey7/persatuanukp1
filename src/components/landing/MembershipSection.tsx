@@ -76,7 +76,7 @@ export function MembershipSection() {
                     <span className="text-5xl font-bold text-primary">RM 5</span>
                     <span className="text-muted-foreground">/bulan</span>
                   </div>
-                  <p className="text-sm text-muted-foreground mt-2">+ RM 25 yuran pendaftaran (sekali seumur hidup)</p>
+                  <p className="text-sm text-muted-foreground mt-2">Bayaran bulanan tetap</p>
                 </div>
 
                 <div className="space-y-4 mb-8">
@@ -84,13 +84,9 @@ export function MembershipSection() {
                     <span className="text-muted-foreground">Yuran Bulanan</span>
                     <span className="font-semibold text-foreground">RM 5.00</span>
                   </div>
-                  <div className="flex justify-between items-center py-3 border-b border-border">
-                    <span className="text-muted-foreground">Yuran Pendaftaran</span>
-                    <span className="font-semibold text-foreground">RM 25.00</span>
-                  </div>
                   <div className="flex justify-between items-center py-3">
-                    <span className="text-muted-foreground">Jumlah Pertama</span>
-                    <span className="font-bold text-xl text-primary">RM 30.00</span>
+                    <span className="text-muted-foreground">Jumlah Perlu Dibayar</span>
+                    <span className="font-bold text-xl text-primary">RM 5.00</span>
                   </div>
                 </div>
 

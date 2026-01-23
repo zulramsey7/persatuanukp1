@@ -91,7 +91,7 @@ type IncomeItem = {
   tarikh_bayar: string;
   status: string;
   rujukan_bayaran: string | null;
-  jenis: "yuran_masuk" | "yuran_bulanan";
+  jenis: "yuran_bulanan";
   bulan?: number;
   tahun?: number;
   user_name?: string;
@@ -110,7 +110,7 @@ type PendingPayment = {
   rujukan_bayaran: string | null;
   bulan?: number;
   tahun?: number;
-  jenis: "yuran_masuk" | "yuran_bulanan";
+  jenis: "yuran_bulanan";
   user_name: string;
   user_no_rumah: string;
 };
@@ -197,12 +197,7 @@ const FinanceManagement = () => {
 
   const fetchFinanceData = async () => {
     try {
-      const [yuranMasukRes, yuranBulananRes, keluarRes, profilesRes, pendingBulananRes, pendingMasukRes, danaMasukRes] = await Promise.all([
-        supabase
-          .from("yuran_masuk")
-          .select("*")
-          .in("status", ["confirmed", "sudah_bayar"])
-          .order("tarikh_bayar", { ascending: false }),
+      const [yuranBulananRes, keluarRes, profilesRes, pendingBulananRes, danaMasukRes] = await Promise.all([
         supabase
           .from("yuran_bulanan")
           .select("*")
@@ -221,36 +216,17 @@ const FinanceManagement = () => {
           .eq("status", "pending")
           .order("created_at", { ascending: false }),
         supabase
-          .from("yuran_masuk")
-          .select("*")
-          .eq("status", "pending")
-          .order("created_at", { ascending: false }),
-        supabase
           .from("dana_masuk")
           .select("*")
           .order("tarikh", { ascending: false }),
       ]);
 
-      if (yuranMasukRes.error) throw yuranMasukRes.error;
       if (yuranBulananRes.error) throw yuranBulananRes.error;
       if (keluarRes.error) throw keluarRes.error;
 
       const profilesMap = new Map(
         (profilesRes.data || []).map(p => [p.id, { nama_penuh: p.nama_penuh, no_rumah: p.no_rumah }])
       );
-
-      // Transform confirmed incomes
-      const masukItems: IncomeItem[] = (yuranMasukRes.data || []).map(item => ({
-        id: item.id,
-        user_id: item.user_id,
-        jumlah: Number(item.jumlah),
-        tarikh_bayar: item.tarikh_bayar,
-        status: "confirmed",
-        rujukan_bayaran: item.rujukan_bayaran,
-        jenis: "yuran_masuk" as const,
-        user_name: profilesMap.get(item.user_id)?.nama_penuh || "Ahli",
-        user_no_rumah: profilesMap.get(item.user_id)?.no_rumah || "-",
-      }));
 
       const bulananItems: IncomeItem[] = (yuranBulananRes.data || []).map(item => ({
         id: item.id,
@@ -281,24 +257,12 @@ const FinanceManagement = () => {
         user_no_rumah: profilesMap.get(item.user_id)?.no_rumah || "-",
       }));
 
-      const pendingMasuk: PendingPayment[] = (pendingMasukRes.data || []).map(item => ({
-        id: item.id,
-        user_id: item.user_id,
-        jumlah: Number(item.jumlah),
-        tarikh_bayar: item.tarikh_bayar,
-        status: item.status,
-        rujukan_bayaran: item.rujukan_bayaran,
-        jenis: "yuran_masuk" as const,
-        user_name: profilesMap.get(item.user_id)?.nama_penuh || "Ahli",
-        user_no_rumah: profilesMap.get(item.user_id)?.no_rumah || "-",
-      }));
-
-      const combined = [...masukItems, ...bulananItems].sort(
+      const combined = [...bulananItems].sort(
         (a, b) => new Date(b.tarikh_bayar).getTime() - new Date(a.tarikh_bayar).getTime()
       );
 
       setAllIncomes(combined);
-      setPendingPayments([...pendingMasuk, ...pendingBulanan]);
+      setPendingPayments(pendingBulanan);
       setYuranKeluar(keluarRes.data || []);
       setDanaMasukList((danaMasukRes.data || []).map(item => ({
         ...item,
@@ -480,11 +444,10 @@ const FinanceManagement = () => {
 
   const handleConfirmPayment = async (payment: PendingPayment) => {
     try {
-      const table = payment.jenis === "yuran_masuk" ? "yuran_masuk" : "yuran_bulanan";
       const { error } = await supabase
-        .from(table)
+        .from("yuran_bulanan")
         .update({ 
-          status: payment.jenis === "yuran_masuk" ? "confirmed" : "sudah_bayar",
+          status: "sudah_bayar",
           tarikh_bayar: new Date().toISOString()
         })
         .eq("id", payment.id);
@@ -509,9 +472,8 @@ const FinanceManagement = () => {
 
   const handleRejectPayment = async (payment: PendingPayment) => {
     try {
-      const table = payment.jenis === "yuran_masuk" ? "yuran_masuk" : "yuran_bulanan";
       const { error } = await supabase
-        .from(table)
+        .from("yuran_bulanan")
         .update({ status: "gagal" })
         .eq("id", payment.id);
 
@@ -546,7 +508,7 @@ const FinanceManagement = () => {
           format(new Date(t.tarikh_bayar), "dd/MM/yyyy"),
           `"${t.user_name}"`,
           t.user_no_rumah,
-          t.jenis === "yuran_masuk" ? "Yuran Masuk" : `Bulanan (${bulanNames[t.bulan || 0]} ${t.tahun})`,
+          `Bulanan (${bulanNames[t.bulan || 0]} ${t.tahun})`,
           t.jumlah.toFixed(2),
           t.status === "confirmed" ? "Disahkan" : "Menunggu",
           t.rujukan_bayaran || "-"
@@ -677,8 +639,8 @@ const FinanceManagement = () => {
 
   // Calculations - include dana_masuk in total income
   const totalDanaMasuk = danaMasukList.reduce((sum, d) => sum + Number(d.jumlah), 0);
-  const totalYuranMasuk = allIncomes.reduce((sum, y) => sum + Number(y.jumlah), 0);
-  const totalMasuk = totalYuranMasuk + totalDanaMasuk;
+  const totalYuran = allIncomes.reduce((sum, y) => sum + Number(y.jumlah), 0);
+  const totalMasuk = totalYuran + totalDanaMasuk;
   const totalKeluar = yuranKeluar.reduce((sum, y) => sum + Number(y.jumlah), 0);
   const baki = totalMasuk - totalKeluar;
 
@@ -1031,9 +993,7 @@ const FinanceManagement = () => {
                     <div>
                       <p className="font-medium">{payment.user_name}</p>
                       <p className="text-sm text-muted-foreground">
-                        Rumah {payment.user_no_rumah} • {payment.jenis === "yuran_masuk" 
-                          ? "Yuran Keahlian" 
-                          : `Bulanan (${bulanNames[payment.bulan || 0]} ${payment.tahun})`}
+                        Rumah {payment.user_no_rumah} • {`Bulanan (${bulanNames[payment.bulan || 0]} ${payment.tahun})`}
                       </p>
                       {payment.rujukan_bayaran && (
                         <p className="text-xs text-muted-foreground">Rujukan: {payment.rujukan_bayaran}</p>
@@ -1231,7 +1191,7 @@ const FinanceManagement = () => {
           <FloatingCard className="p-4">
             <div className="flex justify-between items-center mb-4">
               <p className="text-sm text-muted-foreground">
-                Jumlah: <span className="font-bold text-green-600">RM {totalYuranMasuk.toFixed(2)}</span>
+                Jumlah: <span className="font-bold text-green-600">RM {totalYuran.toFixed(2)}</span>
               </p>
               <Button variant="outline" size="sm" onClick={() => exportToCSV("masuk")} className="gap-2">
                 <Download className="w-4 h-4" />
@@ -1263,10 +1223,8 @@ const FinanceManagement = () => {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={item.jenis === "yuran_masuk" ? "default" : "secondary"}>
-                          {item.jenis === "yuran_masuk" 
-                            ? "Yuran Masuk" 
-                            : `Bulanan (${bulanNames[item.bulan || 0]} ${item.tahun})`}
+                        <Badge variant="secondary">
+                          {`Bulanan (${bulanNames[item.bulan || 0]} ${item.tahun})`}
                         </Badge>
                       </TableCell>
                       <TableCell>

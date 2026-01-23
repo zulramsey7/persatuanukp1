@@ -22,11 +22,6 @@ interface MemberYuranStatus {
   id: string;
   nama_penuh: string;
   no_rumah: string;
-  yuranMasuk: {
-    status: string;
-    jumlah: number;
-    tarikh_bayar: string | null;
-  } | null;
   yuranBulanan: {
     bulan: number;
     tahun: number;
@@ -45,9 +40,6 @@ export function YuranStatusWidget() {
 
   const bulanNames = ["Jan", "Feb", "Mac", "Apr", "Mei", "Jun", "Jul", "Ogo", "Sep", "Okt", "Nov", "Dis"];
 
-  const isPaidMasukStatus = (status?: string | null) =>
-    status === "confirmed" || status === "dibayar" || status === "sudah_bayar";
-
   const isPaidBulananStatus = (status?: string | null) =>
     status === "sudah_bayar" || status === "dibayar" || status === "confirmed";
 
@@ -63,15 +55,6 @@ export function YuranStatusWidget() {
           schema: "public",
           table: "yuran_bulanan",
           filter: `tahun=eq.${selectedYear}`,
-        },
-        () => fetchYuranStatus()
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "yuran_masuk",
         },
         () => fetchYuranStatus()
       )
@@ -103,11 +86,6 @@ export function YuranStatusWidget() {
 
       if (profilesError) throw profilesError;
 
-      // Fetch yuran masuk
-      const { data: yuranMasuk } = await supabase
-        .from("yuran_masuk")
-        .select("user_id, status, jumlah, tarikh_bayar");
-
       // Fetch yuran bulanan for selected year
       const { data: yuranBulanan } = await supabase
         .from("yuran_bulanan")
@@ -116,20 +94,12 @@ export function YuranStatusWidget() {
 
       // Combine data
       const membersWithYuran: MemberYuranStatus[] = (profiles || []).map(profile => {
-        const masuk = (yuranMasuk || []).find(
-          (y) => y.user_id === profile.id && isPaidMasukStatus(y.status)
-        );
         const bulanan = (yuranBulanan || [])
           .filter(y => y.user_id === profile.id)
           .sort((a, b) => a.bulan - b.bulan);
 
         return {
           ...profile,
-          yuranMasuk: masuk ? {
-            status: masuk.status,
-            jumlah: Number(masuk.jumlah),
-            tarikh_bayar: masuk.tarikh_bayar
-          } : null,
           yuranBulanan: bulanan.map(y => ({
             bulan: y.bulan,
             tahun: y.tahun,
@@ -173,17 +143,15 @@ export function YuranStatusWidget() {
 
   const stats = {
     totalMembers: members.length,
-    paidMasuk: members.filter((m) => m.yuranMasuk).length,
     totalPaidBulanan: members.reduce(
       (sum, m) => sum + m.yuranBulanan.filter((y) => isPaidBulananStatus(y.status)).length,
       0
     ),
     totalCollected: members.reduce((sum, m) => {
-      const masuk = m.yuranMasuk?.jumlah || 0;
       const bulanan = m.yuranBulanan
         .filter((y) => isPaidBulananStatus(y.status))
         .reduce((s, y) => s + y.jumlah, 0);
-      return sum + masuk + bulanan;
+      return sum + bulanan;
     }, 0),
   };
 
@@ -210,7 +178,7 @@ export function YuranStatusWidget() {
           </div>
           <div>
             <h3 className="font-semibold text-foreground">Status Yuran Ahli</h3>
-            <p className="text-sm text-muted-foreground">Paparan yuran masuk & bulanan</p>
+            <p className="text-sm text-muted-foreground">Paparan yuran bulanan</p>
           </div>
         </div>
         <select
@@ -225,20 +193,13 @@ export function YuranStatusWidget() {
       </div>
 
       {/* Summary Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
         <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20">
           <div className="flex items-center gap-2 mb-1">
             <User className="w-4 h-4 text-blue-500" />
             <span className="text-xs text-muted-foreground">Ahli Aktif</span>
           </div>
           <p className="text-lg font-bold text-foreground">{stats.totalMembers}</p>
-        </div>
-        <div className="p-3 rounded-xl bg-green-500/10 border border-green-500/20">
-          <div className="flex items-center gap-2 mb-1">
-            <CheckCircle className="w-4 h-4 text-green-500" />
-            <span className="text-xs text-muted-foreground">Bayar Masuk</span>
-          </div>
-          <p className="text-lg font-bold text-foreground">{stats.paidMasuk}</p>
         </div>
         <div className="p-3 rounded-xl bg-purple-500/10 border border-purple-500/20">
           <div className="flex items-center gap-2 mb-1">
@@ -258,57 +219,10 @@ export function YuranStatusWidget() {
         </div>
       </div>
 
-      <Tabs defaultValue="masuk" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-4">
-          <TabsTrigger value="masuk">Yuran Masuk (RM20)</TabsTrigger>
+      <Tabs defaultValue="bulanan" className="w-full">
+        <TabsList className="grid w-full grid-cols-1 mb-4">
           <TabsTrigger value="bulanan">Yuran Bulanan (RM5)</TabsTrigger>
         </TabsList>
-
-        <TabsContent value="masuk">
-          <ScrollArea className="h-[300px]">
-            <div className="space-y-2">
-              {members.map((member, index) => (
-                <motion.div
-                  key={member.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.02 }}
-                  className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Home className="w-4 h-4 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm text-foreground">{member.nama_penuh}</p>
-                      <p className="text-xs text-muted-foreground">No. {member.no_rumah}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {member.yuranMasuk ? (
-                      <>
-                        <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/30">
-                          <CheckCircle className="w-3 h-3 mr-1" />
-                          Sudah Bayar
-                        </Badge>
-                        {member.yuranMasuk.tarikh_bayar && (
-                          <span className="text-xs text-muted-foreground">
-                            {format(new Date(member.yuranMasuk.tarikh_bayar), "dd MMM yyyy", { locale: ms })}
-                          </span>
-                        )}
-                      </>
-                    ) : (
-                      <Badge variant="outline" className="bg-red-500/10 text-red-600 border-red-500/30">
-                        <XCircle className="w-3 h-3 mr-1" />
-                        Belum Bayar
-                      </Badge>
-                    )}
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </ScrollArea>
-        </TabsContent>
 
         <TabsContent value="bulanan">
           <ScrollArea className="h-[300px]">

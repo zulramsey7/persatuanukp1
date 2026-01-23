@@ -12,9 +12,9 @@ const fetchFinanceData = async (): Promise<FinanceDataPoint[]> => {
   const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
 
   const { data: incomeData, error: incomeError } = await supabase
-    .from("yuran_masuk")
+    .from("yuran_bulanan")
     .select("tarikh_bayar, jumlah")
-    .in("status", ["confirmed", "sudah_bayar"])
+    .eq("status", "confirmed")
     .gte("tarikh_bayar", sixMonthsAgo.toISOString().split("T")[0]);
 
   if (incomeError) throw incomeError;

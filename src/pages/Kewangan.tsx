@@ -46,15 +46,6 @@ interface YuranBulanan {
   created_at: string;
 }
 
-interface YuranMasuk {
-  id: string;
-  jumlah: number;
-  tarikh_bayar: string;
-  status: string;
-  rujukan_bayaran: string | null;
-  created_at: string;
-}
-
 interface UserProfile {
   nama_penuh: string;
   email: string;
@@ -63,7 +54,7 @@ interface UserProfile {
 
 interface TransactionHistory {
   id: string;
-  type: "yuran_bulanan" | "yuran_masuk";
+  type: "yuran_bulanan";
   description: string;
   amount: number;
   status: string;
@@ -108,7 +99,6 @@ const normalizePaymentStatus = (status?: string | null): NormalizedPaymentStatus
 
 const Kewangan = () => {
   const [yuranBulanan, setYuranBulanan] = useState<YuranBulanan[]>([]);
-  const [yuranMasuk, setYuranMasuk] = useState<YuranMasuk[]>([]);
   const [allTransactions, setAllTransactions] = useState<TransactionHistory[]>([]);
   const [filteredTransactions, setFilteredTransactions] = useState<TransactionHistory[]>([]);
   const [loading, setLoading] = useState(true);
@@ -198,22 +188,6 @@ const Kewangan = () => {
             });
           }
         )
-        .on(
-          "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "yuran_masuk",
-            filter: `user_id=eq.${session.user.id}`,
-          },
-          () => {
-            refetch();
-            toast({
-              title: "Status Yuran Keahlian Dikemaskini",
-              description: "Data yuran keahlian anda telah dikemaskini.",
-            });
-          }
-        )
         .subscribe();
     };
 
@@ -228,38 +202,25 @@ const Kewangan = () => {
 
   const fetchData = async (uid: string) => {
     try {
-      const [bulananRes, masukRes] = await Promise.all([
+      const [bulananRes] = await Promise.all([
         supabase
           .from("yuran_bulanan")
           .select("*")
           .eq("user_id", uid)
           .order("tahun", { ascending: false })
-          .order("bulan", { ascending: false }),
-        supabase
-          .from("yuran_masuk")
-          .select("*")
-          .eq("user_id", uid)
-          .order("tarikh_bayar", { ascending: false })
+          .order("bulan", { ascending: false })
       ]);
 
       if (bulananRes.error) throw bulananRes.error;
-      if (masukRes.error) throw masukRes.error;
 
       const bulananRaw = bulananRes.data || [];
-      const masukRaw = masukRes.data || [];
 
       const bulananData = bulananRaw.map((y) => ({
         ...y,
         status: normalizePaymentStatus(y.status),
       }));
-
-      const masukData = masukRaw.map((y) => ({
-        ...y,
-        status: normalizePaymentStatus(y.status),
-      }));
       
       setYuranBulanan(bulananData.filter(y => y.tahun === currentYear));
-      setYuranMasuk(masukData);
       
       const transactions: TransactionHistory[] = [
         ...bulananData.map((item): TransactionHistory => ({
@@ -272,15 +233,6 @@ const Kewangan = () => {
           reference: item.rujukan_bayaran,
           month: item.bulan,
           year: item.tahun
-        })),
-        ...masukData.map((item): TransactionHistory => ({
-          id: item.id,
-          type: "yuran_masuk",
-          description: "Yuran Keahlian",
-          amount: Number(item.jumlah),
-          status: item.status,
-          date: item.tarikh_bayar || item.created_at,
-          reference: item.rujukan_bayaran
         }))
       ];
       
@@ -322,7 +274,7 @@ const Kewangan = () => {
       ["Tarikh", "Jenis", "Keterangan", "Jumlah (RM)", "Status", "Rujukan"].join(","),
       ...filteredTransactions.map(t => [
         format(new Date(t.date), "dd/MM/yyyy"),
-        t.type === "yuran_bulanan" ? "Yuran Bulanan" : "Yuran Keahlian",
+        "Yuran Bulanan",
         t.description,
         t.amount.toFixed(2),
         getStatusLabel(t.status),
@@ -695,7 +647,6 @@ const Kewangan = () => {
                   <SelectContent className="bg-background border">
                     <SelectItem value="all">Semua</SelectItem>
                     <SelectItem value="yuran_bulanan">Bulanan</SelectItem>
-                    <SelectItem value="yuran_masuk">Keahlian</SelectItem>
                   </SelectContent>
                 </Select>
                 

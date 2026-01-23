@@ -37,9 +37,9 @@ export function HeroSection() {
       })
       .subscribe();
 
-    const yuranMasukChannel = supabase
-      .channel('landing-yuran-masuk')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'yuran_masuk' }, () => {
+    const yuranBulananChannel = supabase
+      .channel('landing-yuran-bulanan')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'yuran_bulanan' }, () => {
         fetchStats();
       })
       .subscribe();
@@ -54,7 +54,7 @@ export function HeroSection() {
     return () => {
       supabase.removeChannel(profilesChannel);
       supabase.removeChannel(galeriChannel);
-      supabase.removeChannel(yuranMasukChannel);
+      supabase.removeChannel(yuranBulananChannel);
       supabase.removeChannel(yuranKeluarChannel);
     };
   }, []);
@@ -75,11 +75,11 @@ export function HeroSection() {
         .gte("tarikh_event", `${currentYear}-01-01`)
         .lte("tarikh_event", `${currentYear}-12-31`);
 
-      // Fetch total income (yuran_masuk with status 'dibayar')
+      // Fetch total income (yuran_bulanan with status 'confirmed')
       const { data: incomeData } = await supabase
-        .from("yuran_masuk")
+        .from("yuran_bulanan")
         .select("jumlah")
-        .eq("status", "dibayar");
+        .eq("status", "confirmed");
 
       const totalIncome = incomeData?.reduce((acc, item) => acc + Number(item.jumlah), 0) || 0;
 

@@ -44,7 +44,6 @@ const fetchStats = async (_dateRangeFilter: "today" | "week" | "month" | "all"):
   const [
     membersRes,
     pendingRes,
-    yuranMasukRes,
     yuranBulananRes,
     danaMasukRes,
     expenseRes,
@@ -54,10 +53,6 @@ const fetchStats = async (_dateRangeFilter: "today" | "week" | "month" | "all"):
     supabase.from("profiles")
       .select("*", { count: "exact", head: true })
       .eq("status_ahli", "pending"),
-    supabase
-      .from("yuran_masuk")
-      .select("jumlah")
-      .in("status", ["confirmed", "sudah_bayar"]),
     supabase
       .from("yuran_bulanan")
       .select("jumlah")
@@ -77,17 +72,15 @@ const fetchStats = async (_dateRangeFilter: "today" | "week" | "month" | "all"):
   // Check for errors
   if (membersRes.error) throw membersRes.error;
   if (pendingRes.error) throw pendingRes.error;
-  if (yuranMasukRes.error) throw yuranMasukRes.error;
   if (yuranBulananRes.error) throw yuranBulananRes.error;
   if (danaMasukRes.error) throw danaMasukRes.error;
   if (expenseRes.error) throw expenseRes.error;
   if (outstandingRes.error) throw outstandingRes.error;
 
-  // Total income = yuran masuk (confirmed) + yuran bulanan (sudah_bayar) + dana masuk
-  const totalYuranMasuk = yuranMasukRes.data?.reduce((sum, r) => sum + Number(r.jumlah), 0) || 0;
+  // Total income = yuran bulanan (sudah_bayar) + dana masuk
   const totalYuranBulanan = yuranBulananRes.data?.reduce((sum, r) => sum + Number(r.jumlah), 0) || 0;
   const totalDanaMasuk = danaMasukRes.data?.reduce((sum, r) => sum + Number(r.jumlah), 0) || 0;
-  const totalIncome = totalYuranMasuk + totalYuranBulanan + totalDanaMasuk;
+  const totalIncome = totalYuranBulanan + totalDanaMasuk;
 
   const totalExpenses = expenseRes.data?.reduce((sum, r) => sum + Number(r.jumlah), 0) || 0;
   const outstandingDues = outstandingRes.data?.reduce((sum, r) => sum + Number(r.jumlah), 0) || 0;

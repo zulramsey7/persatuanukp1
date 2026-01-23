@@ -54,12 +54,10 @@ import { ms } from "date-fns/locale";
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 type StatusAhli = Database["public"]["Enums"]["status_ahli"];
 type AppRole = Database["public"]["Enums"]["app_role"];
-type YuranMasuk = Database["public"]["Tables"]["yuran_masuk"]["Row"];
 type YuranBulanan = Database["public"]["Tables"]["yuran_bulanan"]["Row"];
 
 interface MemberWithRoles extends Profile {
   roles: AppRole[];
-  yuranMasuk?: YuranMasuk | null;
   yuranBulanan?: YuranBulanan[];
 }
 
@@ -74,7 +72,6 @@ const MemberManagement = () => {
   const [yuranDialogOpen, setYuranDialogOpen] = useState(false);
   const [actionType, setActionType] = useState<"approve" | "reject" | null>(null);
   const [selectedRole, setSelectedRole] = useState<AppRole>("ahli");
-  const [yuranType, setYuranType] = useState<"masuk" | "bulanan">("masuk");
   const [yuranForm, setYuranForm] = useState({
     jumlah: "",
     rujukan_bayaran: "",
@@ -108,11 +105,6 @@ const MemberManagement = () => {
 
       if (rolesError) throw rolesError;
 
-      // Fetch yuran masuk
-      const { data: yuranMasukData } = await supabase
-        .from("yuran_masuk")
-        .select("*");
-
       // Fetch yuran bulanan
       const { data: yuranBulananData } = await supabase
         .from("yuran_bulanan")
@@ -124,7 +116,6 @@ const MemberManagement = () => {
         roles: (rolesData || [])
           .filter(r => r.user_id === profile.id)
           .map(r => r.role),
-        yuranMasuk: (yuranMasukData || []).find(y => y.user_id === profile.id && y.status === "confirmed") || null,
         yuranBulanan: (yuranBulananData || []).filter(y => y.user_id === profile.id)
       }));
 
@@ -248,11 +239,10 @@ const MemberManagement = () => {
     setRoleDialogOpen(true);
   };
 
-  const openYuranDialog = (member: MemberWithRoles, type: "masuk" | "bulanan") => {
+  const openYuranDialog = (member: MemberWithRoles) => {
     setSelectedMember(member);
-    setYuranType(type);
     setYuranForm({
-      jumlah: type === "masuk" ? "20" : "5",
+      jumlah: "5",
       rujukan_bayaran: "",
       bulan: new Date().getMonth() + 1,
       tahun: new Date().getFullYear(),
@@ -264,45 +254,6 @@ const MemberManagement = () => {
     if (!selectedMember || !yuranForm.jumlah) return;
 
     try {
-      if (yuranType === "masuk") {
-        // Check if already has yuran masuk
-        const { data: existing } = await supabase
-          .from("yuran_masuk")
-          .select("id")
-          .eq("user_id", selectedMember.id)
-          .eq("status", "confirmed")
-          .maybeSingle();
-
-        if (existing) {
-          // Update existing
-          const { error } = await supabase
-            .from("yuran_masuk")
-            .update({
-              jumlah: parseFloat(yuranForm.jumlah),
-              rujukan_bayaran: yuranForm.rujukan_bayaran || `MANUAL-${Date.now()}`,
-              tarikh_bayar: new Date().toISOString(),
-              status: "confirmed"
-            })
-            .eq("id", existing.id);
-
-          if (error) throw error;
-        } else {
-          // Insert new
-          const { error } = await supabase.from("yuran_masuk").insert({
-            user_id: selectedMember.id,
-            jumlah: parseFloat(yuranForm.jumlah),
-            rujukan_bayaran: yuranForm.rujukan_bayaran || `MANUAL-${Date.now()}`,
-            status: "confirmed"
-          });
-
-          if (error) throw error;
-        }
-
-        toast({
-          title: "Berjaya!",
-          description: "Yuran masuk telah dikemaskini",
-        });
-      } else {
         // Yuran bulanan
         const { data: existing } = await supabase
           .from("yuran_bulanan")
@@ -344,7 +295,6 @@ const MemberManagement = () => {
           title: "Berjaya!",
           description: `Yuran bulanan ${yuranForm.bulan}/${yuranForm.tahun} telah dikemaskini`,
         });
-      }
 
       setYuranDialogOpen(false);
       setSelectedMember(null);
@@ -565,7 +515,6 @@ const MemberManagement = () => {
                 <TableHead className="font-semibold hidden md:table-cell">No. Rumah</TableHead>
                 <TableHead className="font-semibold hidden lg:table-cell">Email</TableHead>
                 <TableHead className="font-semibold">Peranan</TableHead>
-                <TableHead className="font-semibold">Yuran Masuk</TableHead>
                 <TableHead className="font-semibold">
                   <div className="flex flex-col">
                     <span>Bulanan</span>
@@ -596,19 +545,6 @@ const MemberManagement = () => {
                   <TableCell className="hidden lg:table-cell text-muted-foreground">{member.email}</TableCell>
                   <TableCell>{getRoleBadge(member.roles)}</TableCell>
                   <TableCell>
-                    {member.yuranMasuk ? (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 text-xs font-medium border border-green-500/20">
-                        <CheckCircle className="w-3 h-3" />
-                        RM {Number(member.yuranMasuk.jumlah).toFixed(0)}
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-red-500/10 text-red-600 dark:text-red-400 text-xs font-medium border border-red-500/20">
-                        <XCircle className="w-3 h-3" />
-                        Belum
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell>
                     {getCurrentMonthYuranStatus(member) === "sudah" ? (
                       <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 text-xs font-medium border border-green-500/20">
                         <CheckCircle className="w-3 h-3" />
@@ -630,7 +566,7 @@ const MemberManagement = () => {
                           size="sm"
                           variant="outline"
                           className="text-green-600 border-green-300 hover:bg-green-50 dark:hover:bg-green-950"
-                          onClick={() => openYuranDialog(member, "masuk")}
+                          onClick={() => openYuranDialog(member)}
                         >
                           <Receipt className="w-4 h-4 mr-1" />
                           <span className="hidden sm:inline">Yuran</span>
@@ -849,47 +785,14 @@ const MemberManagement = () => {
       <Dialog open={yuranDialogOpen} onOpenChange={setYuranDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Receipt className="w-5 h-5 text-green-600" />
-              {yuranType === "masuk" ? "Urus Yuran Masuk" : "Urus Yuran Bulanan"}
-            </DialogTitle>
-            <DialogDescription className="pt-2">
-              Kemaskini bayaran untuk <strong>{selectedMember?.nama_penuh}</strong>
+            <DialogTitle>Kemaskini Yuran</DialogTitle>
+            <DialogDescription>
+              Kemaskini status yuran untuk {selectedMember?.nama_penuh}
             </DialogDescription>
           </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>Jenis Yuran</Label>
-              <Select value={yuranType} onValueChange={(value: "masuk" | "bulanan") => {
-                setYuranType(value);
-                setYuranForm({
-                  ...yuranForm,
-                  jumlah: value === "masuk" ? "20" : "5"
-                });
-              }}>
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="masuk">
-                    <div className="flex items-center gap-2">
-                      <Plus className="w-4 h-4 text-green-600" />
-                      Yuran Masuk (RM20)
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="bulanan">
-                    <div className="flex items-center gap-2">
-                      <Receipt className="w-4 h-4 text-blue-600" />
-                      Yuran Bulanan (RM5)
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
 
-            {yuranType === "bulanan" && (
-              <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Bulan</Label>
                   <Select 
@@ -927,7 +830,6 @@ const MemberManagement = () => {
                   </Select>
                 </div>
               </div>
-            )}
 
             <div className="space-y-2">
               <Label>Jumlah (RM)</Label>
@@ -948,16 +850,7 @@ const MemberManagement = () => {
               />
             </div>
 
-            {selectedMember?.yuranMasuk && yuranType === "masuk" && (
-              <div className="bg-green-500/10 rounded-lg p-3 text-sm">
-                <p className="font-medium text-green-600 mb-1">✓ Sudah Bayar Yuran Masuk</p>
-                <p className="text-xs text-muted-foreground">
-                  Rujukan: {selectedMember.yuranMasuk.rujukan_bayaran || "-"}
-                </p>
-              </div>
-            )}
-
-            {yuranType === "bulanan" && selectedMember?.yuranBulanan && selectedMember.yuranBulanan.length > 0 && (
+            {selectedMember?.yuranBulanan && selectedMember.yuranBulanan.length > 0 && (
               <div className="bg-muted/50 rounded-lg p-3">
                 <p className="font-medium text-foreground mb-2 text-sm">Rekod Yuran Bulanan:</p>
                 <div className="flex flex-wrap gap-1">

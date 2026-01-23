@@ -1,10 +1,19 @@
-import { MainLayout } from "@/components/layout/MainLayout";
+import { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { MapPin, Phone, Mail, Facebook, MessageCircle, Clock, Building2 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { MapPin, Phone, Mail, Clock, ArrowLeft } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { MobileBottomNav } from "@/components/dashboard/MobileNav";
 
 const HubungiKami = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const handleBack = () => {
+    navigate(-1);
+  };
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -38,9 +47,9 @@ const HubungiKami = () => {
     {
       icon: Mail,
       title: "Emel",
-      details: ["persatuanukayperdana@gmail.com", "persatuanukayperdana@gmail.com"],
+      details: ["persatuanukayperdana@gmail.com"],
       action: "Hantar Emel",
-      link: "mailto:info@persatuanukp1.com"
+      link: "mailto:persatuanukayperdana@gmail.com"
     },
     {
       icon: Clock,
@@ -52,16 +61,32 @@ const HubungiKami = () => {
   ];
 
   return (
-    <MainLayout>
-      <div className="space-y-8 pb-10">
-        {/* Header Section */}
-        <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Hubungi Kami</h1>
-          <p className="text-muted-foreground">
-            Ada pertanyaan atau cadangan? Hubungi kami melalui saluran di bawah.
-          </p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-primary/20 via-background to-accent/20 pb-24">
+      {/* Background decorations */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-primary/20 rounded-full blur-3xl" />
+        <div className="absolute bottom-40 right-10 w-96 h-96 bg-accent/20 rounded-full blur-3xl" />
+      </div>
 
+      {/* Header */}
+      <header className="relative z-10 px-4 pt-6 pb-4">
+        <div className="flex items-center gap-3">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="rounded-full"
+            onClick={handleBack}
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <div>
+            <h1 className="text-xl font-bold text-foreground">Hubungi Kami</h1>
+            <p className="text-muted-foreground text-sm">Saluran komunikasi rasmi persatuan</p>
+          </div>
+        </div>
+      </header>
+
+      <main className="relative z-10 px-4 space-y-4">
         <motion.div
           variants={containerVariants}
           initial="hidden"
@@ -77,85 +102,30 @@ const HubungiKami = () => {
                   </div>
                   <CardTitle className="text-xl">{item.title}</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="text-sm text-muted-foreground space-y-1">
-                    {item.details.map((line, i) => (
-                      <p key={i}>{line}</p>
-                    ))}
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      {item.details.map((detail, i) => (
+                        <p key={i} className="text-muted-foreground">{detail}</p>
+                      ))}
+                    </div>
+                    {item.action && item.link && (
+                      <Button asChild className="w-full" variant="outline">
+                        <a href={item.link} target="_blank" rel="noopener noreferrer">
+                          {item.action}
+                        </a>
+                      </Button>
+                    )}
                   </div>
-                  {item.action && (
-                    <Button 
-                      variant="outline" 
-                      className="w-full mt-4" 
-                      asChild
-                    >
-                      <a href={item.link || "#"} target="_blank" rel="noopener noreferrer">
-                        {item.action}
-                      </a>
-                    </Button>
-                  )}
                 </CardContent>
               </Card>
             </motion.div>
           ))}
         </motion.div>
+      </main>
 
-        {/* Social Media & Map Section */}
-        <motion.div 
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="grid gap-6 md:grid-cols-2"
-        >
-          {/* Social Media */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MessageCircle className="w-5 h-5 text-primary" />
-                Media Sosial
-              </CardTitle>
-              <CardDescription>
-                Ikuti perkembangan terkini aktiviti persatuan di media sosial rasmi kami.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex gap-4">
-                <Button className="flex-1 bg-blue-600 hover:bg-blue-700" asChild>
-                  <a href="#" target="_blank" rel="noopener noreferrer">
-                    <Facebook className="mr-2 h-4 w-4" /> Facebook
-                  </a>
-                </Button>
-                <Button className="flex-1 bg-green-600 hover:bg-green-700" asChild>
-                  <a href="https://wa.me/60173304906" target="_blank" rel="noopener noreferrer">
-                    <MessageCircle className="mr-2 h-4 w-4" /> WhatsApp
-                  </a>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Office Location Placeholder */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building2 className="w-5 h-5 text-primary" />
-                Pejabat Urusan
-              </CardTitle>
-              <CardDescription>
-                Lokasi pejabat urusan Persatuan Penduduk UKP1.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="h-[150px] bg-muted/50 rounded-md flex items-center justify-center border-2 border-dashed">
-              <div className="text-center text-muted-foreground">
-                <MapPin className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p>Peta Lokasi Google Maps</p>
-                <p className="text-xs mt-1">(Akan Datang)</p>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
-    </MainLayout>
+      <MobileBottomNav />
+    </div>
   );
 };
 
