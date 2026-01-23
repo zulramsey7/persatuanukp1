@@ -2,59 +2,40 @@ import { useState, useEffect } from "react";
 import { X, Download, Smartphone, Zap, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
-
-interface BeforeInstallPromptEvent extends Event {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
-}
+import { usePWA } from "@/hooks/usePWA";
 
 const PWAInstallBanner = () => {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const { isInstallable, isInstalled, isIOS, install } = usePWA();
   const [showBanner, setShowBanner] = useState(false);
-  const [isIOS, setIsIOS] = useState(false);
-  const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
-    // Check if already installed
-    const standalone = window.matchMedia("(display-mode: standalone)").matches;
-    setIsStandalone(standalone);
-
-    // Check if iOS
-    const ios = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    setIsIOS(ios);
-
     // Check if banner was dismissed
     const dismissed = sessionStorage.getItem("pwa-banner-dismissed");
 
-    // Show banner after 3 seconds if not dismissed in this session
-    if (!standalone && !dismissed) {
+    // Don't show if installed or dismissed
+    if (isInstalled || dismissed) {
+      setShowBanner(false);
+      return;
+    }
+
+    // For iOS, show after delay since there's no install prompt event
+    if (isIOS) {
       const timer = setTimeout(() => {
         setShowBanner(true);
       }, 3000);
       return () => clearTimeout(timer);
     }
 
-    // Listen for install prompt
-    const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-    };
-
-    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-
-    return () => {
-      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-    };
-  }, []);
+    // For non-iOS, only show when installable (event has fired)
+    if (isInstallable) {
+      setShowBanner(true);
+    }
+  }, [isInstallable, isInstalled, isIOS]);
 
   const handleInstall = async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === "accepted") {
-        setShowBanner(false);
-      }
-      setDeferredPrompt(null);
+    const success = await install();
+    if (success) {
+      setShowBanner(false);
     }
   };
 
@@ -63,7 +44,7 @@ const PWAInstallBanner = () => {
     setShowBanner(false);
   };
 
-  if (isStandalone || !showBanner) return null;
+  if (!showBanner) return null;
 
   return (
     <AnimatePresence>
@@ -119,7 +100,7 @@ const PWAInstallBanner = () => {
                 
                 {/* Buttons */}
                 <div className="flex items-center gap-2 mt-4">
-                  {!isIOS && deferredPrompt && (
+                  {!isIOS && isInstallable && (
                     <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                       <Button
                         onClick={handleInstall}
