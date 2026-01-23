@@ -135,10 +135,10 @@ export function MobileSideMenu({ isOpen, onClose }: MobileSideMenuProps) {
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed left-0 top-0 bottom-0 z-50 w-80 bg-card border-r border-border lg:hidden"
+            className="fixed left-0 top-0 bottom-0 z-50 w-80 bg-card border-r border-border lg:hidden flex flex-col"
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-border">
+            <div className="flex-shrink-0 flex items-center justify-between p-4 border-b border-border">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center">
                   <Home className="w-5 h-5 text-white" />
@@ -157,7 +157,7 @@ export function MobileSideMenu({ isOpen, onClose }: MobileSideMenuProps) {
             </div>
 
             {/* User Profile */}
-            <div className="p-4 border-b border-border">
+            <div className="flex-shrink-0 p-4 border-b border-border">
               <div className="flex items-center gap-3">
                 <Avatar className="w-12 h-12">
                   <AvatarImage src={profile?.avatar_url || undefined} />
@@ -177,7 +177,7 @@ export function MobileSideMenu({ isOpen, onClose }: MobileSideMenuProps) {
             </div>
 
             {/* Navigation */}
-            <nav className="p-4 space-y-1">
+            <nav className="flex-1 overflow-y-auto p-4 space-y-1">
               {sideMenuItems.map((item) => {
                 const isActive = location.pathname === item.path;
                 const Icon = item.icon;
@@ -201,7 +201,7 @@ export function MobileSideMenu({ isOpen, onClose }: MobileSideMenuProps) {
             </nav>
 
             {/* Logout */}
-            <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-border bg-card">
+            <div className="flex-shrink-0 p-4 border-t border-border bg-card">
               {isInstallable && (
                 <button
                   onClick={() => {

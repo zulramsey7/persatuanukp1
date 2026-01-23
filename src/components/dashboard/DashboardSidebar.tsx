@@ -84,10 +84,10 @@ export function DashboardSidebar({ collapsed, onToggle }: DashboardSidebarProps)
     <motion.aside
       initial={false}
       animate={{ width: collapsed ? 80 : 280 }}
-      className="dashboard-sidebar fixed left-0 top-0 z-50 flex flex-col"
+      className="dashboard-sidebar fixed left-0 top-0 z-50 flex flex-col h-[100dvh] overflow-visible bg-sidebar border-r border-sidebar-border"
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
+      <div className="flex-shrink-0 flex items-center justify-between p-4 border-b border-sidebar-border">
         <AnimatePresence mode="wait">
           {!collapsed && (
             <motion.div
@@ -123,7 +123,7 @@ export function DashboardSidebar({ collapsed, onToggle }: DashboardSidebarProps)
       </button>
 
       {/* Main Navigation */}
-      <nav className="flex-1 overflow-y-auto p-3 space-y-1">
+      <nav className="flex-1 overflow-y-auto min-h-0 p-3 space-y-1">
         {mainNavItems.map((item) => (
           <Link
             key={item.path + item.label}
@@ -158,7 +158,7 @@ export function DashboardSidebar({ collapsed, onToggle }: DashboardSidebarProps)
       </nav>
 
       {/* Bottom Section */}
-      <div className="p-3 border-t border-sidebar-border space-y-1">
+      <div className="flex-shrink-0 p-3 border-t border-sidebar-border space-y-1">
         {bottomNavItems.map((item) => (
           <Link
             key={item.path + item.label}
@@ -186,7 +186,7 @@ export function DashboardSidebar({ collapsed, onToggle }: DashboardSidebarProps)
       </div>
 
       {/* User Profile */}
-      <div className="p-3 border-t border-sidebar-border">
+      <div className="flex-shrink-0 p-3 border-t border-sidebar-border">
         <div className={cn(
           "flex items-center gap-3 p-2 rounded-xl bg-sidebar-accent/50",
           collapsed && "justify-center"
