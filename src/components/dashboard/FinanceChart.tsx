@@ -13,6 +13,8 @@ import {
 } from "recharts";
 import { TrendingUp, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { format } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
 
 interface ChartData {
   name: string;
@@ -26,6 +28,40 @@ interface FinanceChartProps {
 }
 
 export function FinanceChart({ data, loading }: FinanceChartProps) {
+  const { toast } = useToast();
+
+  const handleExport = () => {
+    if (!data || data.length === 0) {
+      toast({
+        title: "Tiada data",
+        description: "Tiada data untuk dieksport",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const headers = ["Bulan", "Pendapatan (RM)", "Perbelanjaan (RM)"];
+    const csvContent = [
+      headers.join(","),
+      ...data.map(item => 
+        `${item.name},${item.pendapatan},${item.perbelanjaan}`
+      )
+    ].join("\n");
+
+    const element = document.createElement("a");
+    const file = new Blob([csvContent], {type: 'text/csv'});
+    element.href = URL.createObjectURL(file);
+    element.download = `kewangan_tahunan_${format(new Date(), "yyyy")}.csv`;
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+    
+    toast({
+      title: "Berjaya",
+      description: "Laporan kewangan berjaya dimuat turun",
+    });
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -41,7 +77,7 @@ export function FinanceChart({ data, loading }: FinanceChartProps) {
             Perbandingan bulanan tahun semasa
           </p>
         </div>
-        <Button variant="outline" size="sm" className="gap-2">
+        <Button variant="outline" size="sm" className="gap-2" onClick={handleExport}>
           <Download className="w-4 h-4" />
           Eksport
         </Button>
@@ -102,6 +138,40 @@ interface MemberGrowthChartProps {
 }
 
 export function MemberGrowthChart({ data, loading }: MemberGrowthChartProps) {
+  const { toast } = useToast();
+
+  const handleExport = () => {
+    if (!data || data.length === 0) {
+      toast({
+        title: "Tiada data",
+        description: "Tiada data untuk dieksport",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const headers = ["Bulan", "Jumlah Ahli"];
+    const csvContent = [
+      headers.join(","),
+      ...data.map(item => 
+        `${item.name},${item.ahli}`
+      )
+    ].join("\n");
+
+    const element = document.createElement("a");
+    const file = new Blob([csvContent], {type: 'text/csv'});
+    element.href = URL.createObjectURL(file);
+    element.download = `pertumbuhan_ahli_${format(new Date(), "yyyy")}.csv`;
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+
+    toast({
+      title: "Berjaya",
+      description: "Laporan keahlian berjaya dimuat turun",
+    });
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -123,7 +193,7 @@ export function MemberGrowthChart({ data, loading }: MemberGrowthChartProps) {
             </p>
           </div>
         </div>
-        <Button variant="outline" size="sm" className="gap-2">
+        <Button variant="outline" size="sm" className="gap-2" onClick={handleExport}>
           <Download className="w-4 h-4" />
           Eksport
         </Button>

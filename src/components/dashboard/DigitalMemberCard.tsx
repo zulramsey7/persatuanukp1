@@ -11,6 +11,7 @@ interface DigitalMemberCardProps {
   email?: string;
   phone?: string;
   roleLabel?: string;
+  uuid?: string;
 }
 
 export function DigitalMemberCard({
@@ -19,7 +20,8 @@ export function DigitalMemberCard({
   memberStatus = "active",
   noRumah = "-",
   phone = "-",
-  roleLabel = "Ahli"
+  roleLabel = "Ahli",
+  uuid
 }: DigitalMemberCardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
 
@@ -28,6 +30,7 @@ export function DigitalMemberCard({
   const qrData = JSON.stringify({
     type: "PPUP_MEMBER",
     id: formattedMemberNumber,
+    uuid: uuid,
     name: userName,
     noRumah: noRumah,
     status: memberStatus,

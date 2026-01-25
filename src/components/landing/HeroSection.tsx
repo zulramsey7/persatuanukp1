@@ -118,7 +118,7 @@ export function HeroSection() {
           loading="eager"
           sizes="(max-width: 768px) 100vw, (max-width: 1024px) 100vw, 100vw"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-background/95 md:from-background/90 via-background/75 md:via-background/70 to-background/95" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/40 to-background/90 md:from-background/90 md:via-background/70 md:to-background/95" />
       </div>
 
       {/* Decorative elements */}
@@ -135,7 +135,7 @@ export function HeroSection() {
         />
       </div>
 
-      <div className="container relative z-10 pt-16 md:pt-24 pb-20 md:pb-32 px-4 md:px-6">
+      <div className="container relative z-10 pt-16 md:pt-24 pb-32 md:pb-40 px-4 md:px-6">
         <motion.div
           className="max-w-3xl mx-auto text-center"
           initial={{ opacity: 0, y: 30 }}
@@ -196,7 +196,7 @@ export function HeroSection() {
 
         {/* Stats Cards */}
         <motion.div
-          className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mt-12 md:mt-20 max-w-4xl mx-auto"
+          className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mt-64 md:mt-32 max-w-4xl mx-auto"
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}

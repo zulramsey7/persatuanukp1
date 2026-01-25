@@ -331,6 +331,7 @@ const Dashboard = () => {
               noRumah={profile?.no_rumah || "-"}
               phone={profile?.no_telefon || "-"}
               roleLabel={roleLabel}
+              uuid={profile?.id}
             />
           </motion.div>
 

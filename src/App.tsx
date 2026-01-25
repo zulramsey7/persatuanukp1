@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Admin from "./pages/Admin";
+import Laporan from "./pages/Laporan";
 import Kewangan from "./pages/Kewangan";
 import Galeri from "./pages/Galeri";
 import Kalendar from "./pages/Kalendar";
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/laporan" element={<Laporan />} />
           <Route path="/imbas-qr" element={<ImbasQR />} />
           <Route path="/kewangan" element={<Kewangan />} />
           <Route path="/galeri" element={<Galeri />} />

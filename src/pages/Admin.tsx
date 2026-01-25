@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { FloatingCard } from "@/components/ui/FloatingCard";
@@ -31,8 +31,17 @@ import { useToast } from "@/hooks/use-toast";
 const Admin = () => {
   const { user, profile, roles, loading, isAdmin, isPengerusi, isBendahari, isAJK, signOut } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("ahli");
+  const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "ahli");
+
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams);
+    if (activeTab !== params.get("tab")) {
+      params.set("tab", activeTab);
+      navigate({ search: params.toString() }, { replace: true });
+    }
+  }, [activeTab, navigate, searchParams]);
 
   useEffect(() => {
     if (!loading && !user) {

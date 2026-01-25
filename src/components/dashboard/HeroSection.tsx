@@ -9,6 +9,7 @@ interface HeroSectionProps {
   email?: string;
   phone?: string;
   roleLabel?: string;
+  uuid?: string;
 }
 
 export function HeroSection({ 
@@ -17,7 +18,8 @@ export function HeroSection({
   memberStatus = "active",
   noRumah = "-",
   phone = "-",
-  roleLabel = "Ahli"
+  roleLabel = "Ahli",
+  uuid
 }: HeroSectionProps) {
 
   return (
@@ -35,6 +37,7 @@ export function HeroSection({
           noRumah={noRumah}
           phone={phone}
           roleLabel={roleLabel}
+          uuid={uuid}
         />
       </motion.div>
     </div>

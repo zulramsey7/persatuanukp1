@@ -90,6 +90,7 @@ export function MobileSideMenu({ isOpen, onClose }: MobileSideMenuProps) {
     { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
     { icon: User, label: "Profil", path: "/profil" },
     { icon: Users, label: "Direktori Ahli", path: "/direktori" },
+    { icon: Download, label: "Laporan", path: "/laporan" },
     ...((isPengerusi || isNaibPengerusi || isBendahari) ? [
       { icon: Wallet, label: "Kewangan", path: "/kewangan" }
     ] : []),

@@ -28,6 +28,7 @@ import { supabase } from "@/integrations/supabase/client";
 interface MemberData {
   type: string;
   id: string;
+  uuid?: string;
   name: string;
   noRumah: string;
   status: string;
@@ -78,6 +79,7 @@ export default function ImbasQR() {
     setScannedData(null);
     setMemberProfile(null);
     setVerificationStatus("pending");
+    setIsScanning(true);
 
     try {
       const html5QrCode = new Html5Qrcode(scannerContainerId);
@@ -95,11 +97,10 @@ export default function ImbasQR() {
         },
         () => {}
       );
-
-      setIsScanning(true);
     } catch (err) {
       console.error("Error starting scanner:", err);
       setError("Tidak dapat mengakses kamera. Sila benarkan akses kamera.");
+      setIsScanning(false);
     }
   };
 
@@ -128,11 +129,31 @@ export default function ImbasQR() {
       setScannedData(data);
 
       // Verify member from database
-      const memberNumber = parseInt(data.id, 10);
-      const { data: profiles, error: fetchError } = await supabase
-        .from("profiles")
-        .select("*")
-        .order("created_at", { ascending: true });
+      let profile = null;
+      let fetchError = null;
+
+      if (data.uuid) {
+        const { data: profiles, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", data.uuid)
+          .single();
+          
+        profile = profiles;
+        fetchError = error;
+      } else {
+        // Fallback to legacy logic (sequential ID)
+        const memberNumber = parseInt(data.id, 10);
+        const { data: profiles, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .order("created_at", { ascending: true });
+          
+        if (!error && profiles) {
+           profile = profiles[memberNumber - 1];
+        }
+        fetchError = error;
+      }
 
       if (fetchError) {
         console.error("Error fetching profile:", fetchError);
@@ -141,9 +162,7 @@ export default function ImbasQR() {
         return;
       }
 
-      // Find member by sequential number
-      const profile = profiles?.[memberNumber - 1];
-
+      // Check if profile exists and name matches
       if (profile && profile.nama_penuh === data.name) {
         setMemberProfile(profile);
         setVerificationStatus("valid");

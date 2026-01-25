@@ -49,9 +49,9 @@ export function DashboardSidebar({ collapsed, onToggle }: DashboardSidebarProps)
     { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
     { icon: User, label: "Profil", path: "/profil" },
     { icon: Users, label: "Direktori Ahli", path: "/direktori" },
+    { icon: FileText, label: "Laporan", path: "/laporan" },
     ...(canManageMembers ? [
-      { icon: UserCog, label: "Urus Ahli", path: "/admin" },
-      { icon: FileText, label: "Laporan", path: "/admin" }
+      { icon: UserCog, label: "Urus Ahli", path: "/admin?tab=ahli" },
     ] : []),
     { icon: Bell, label: "Notifikasi", path: "/notifikasi" },
     ...((isPengerusi || isNaibPengerusi || isBendahari) ? [
@@ -78,7 +78,12 @@ export function DashboardSidebar({ collapsed, onToggle }: DashboardSidebarProps)
     navigate("/");
   };
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => {
+    if (path.includes('?')) {
+      return location.pathname + location.search === path;
+    }
+    return location.pathname === path;
+  };
 
   return (
     <motion.aside
