@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
-import { User, Session } from "@supabase/supabase-js";
+import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useErrorHandler } from "@/hooks/useErrorHandler";
 import { FloatingCard } from "@/components/ui/FloatingCard";
@@ -44,9 +44,8 @@ const Auth = () => {
   const [view, setView] = useState<'login' | 'register' | 'forgot_password' | 'reset_password'>(
     mode === "register" ? "register" : mode === "reset" ? "reset_password" : "login"
   );
+  const { user, session } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   
   const [formData, setFormData] = useState({
@@ -60,24 +59,6 @@ const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { handleError } = useErrorHandler();
-
-  useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-      }
-    );
-
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
 
   // Redirect if already logged in
   useEffect(() => {

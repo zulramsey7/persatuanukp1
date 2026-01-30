@@ -6,6 +6,9 @@
 // ============ USER ROLES ============
 export const USER_ROLES = {
   PENGERUSI: 'pengerusi',
+  NAIB_PENGERUSI: 'naib_pengerusi',
+  SETIAUSAHA: 'setiausaha',
+  PENOLONG_SETIAUSAHA: 'penolong_setiausaha',
   BENDAHARI: 'bendahari',
   AJK: 'ajk',
   AHLI: 'ahli',
@@ -13,8 +16,11 @@ export const USER_ROLES = {
 
 export const ROLE_LABELS: Record<string, string> = {
   [USER_ROLES.PENGERUSI]: 'Pengerusi',
+  [USER_ROLES.NAIB_PENGERUSI]: 'Naib Pengerusi',
+  [USER_ROLES.SETIAUSAHA]: 'Setiausaha',
+  [USER_ROLES.PENOLONG_SETIAUSAHA]: 'Penolong Setiausaha',
   [USER_ROLES.BENDAHARI]: 'Bendahari',
-  [USER_ROLES.AJK]: 'AJK',
+  [USER_ROLES.AJK]: 'Ahli Jawatankuasa',
   [USER_ROLES.AHLI]: 'Ahli',
 };
 

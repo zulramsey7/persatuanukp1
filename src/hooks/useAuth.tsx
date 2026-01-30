@@ -87,7 +87,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         
-        if (session?.user) {
+        if (event === 'SIGNED_OUT') {
+          setProfile(null);
+          setRoles([]);
+          setLoading(false);
+        } else if (session?.user) {
+          // Add a small delay to ensure session is propagated
           setTimeout(() => {
             fetchProfile(session.user.id);
             fetchRoles(session.user.id);
@@ -95,6 +100,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         } else {
           setProfile(null);
           setRoles([]);
+          setLoading(false);
         }
       }
     );
@@ -110,6 +116,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       } else {
         setLoading(false);
       }
+    }).catch((error) => {
+      console.error("Error getting session:", error);
+      if (error?.message?.includes("Refresh Token Not Found") || error?.message?.includes("Invalid Refresh Token")) {
+        supabase.auth.signOut().catch(() => {});
+        setSession(null);
+        setUser(null);
+        setProfile(null);
+        setRoles([]);
+      }
+      setLoading(false);
     });
 
     return () => subscription.unsubscribe();

@@ -23,28 +23,38 @@ import {
   Clock,
   AlertCircle,
   Settings,
-  CreditCard
+  CreditCard,
+  Users,
+  Plus,
+  Trash2
 } from "lucide-react";
+import { ROLE_LABELS } from "@/lib/constants";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-const ROLE_LABELS: Record<string, string> = {
-  pengerusi: "Pengerusi",
-  naib_pengerusi: "Naib Pengerusi",
-  setiausaha: "Setiausaha",
-  penolong_setiausaha: "Penolong Setiausaha",
-  bendahari: "Bendahari",
-  ajk: "Ahli Jawatankuasa",
-  ahli: "Ahli"
-};
+interface FamilyMember {
+  id: string;
+  nama_penuh: string;
+  hubungan: string;
+}
 
 const Profil = () => {
-  const { user, profile, roles, loading, signOut, refreshProfile } = useAuth();
+  const { user, profile, roles, loading, signOut, refreshProfile, isAdmin } = useAuth();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [addFamilyDialogOpen, setAddFamilyDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
     nama_penuh: "",
     no_telefon: "",
     no_rumah: ""
   });
+  
+  const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
+  const [loadingFamily, setLoadingFamily] = useState(false);
+  const [familyFormData, setFamilyFormData] = useState({
+    nama_penuh: "",
+    hubungan: ""
+  });
+
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
@@ -62,8 +72,28 @@ const Profil = () => {
         no_telefon: profile.no_telefon || "",
         no_rumah: profile.no_rumah || ""
       });
+      fetchFamilyMembers();
     }
   }, [profile]);
+
+  const fetchFamilyMembers = async () => {
+    if (!user) return;
+    setLoadingFamily(true);
+    try {
+      const { data, error } = await supabase
+        .from('family_members')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: true });
+      
+      if (error) throw error;
+      setFamilyMembers(data || []);
+    } catch (error) {
+      console.error("Error fetching family members:", error);
+    } finally {
+      setLoadingFamily(false);
+    }
+  };
 
   const handleBack = () => {
     const from = (location.state as any)?.from;
@@ -109,6 +139,75 @@ const Profil = () => {
     }
   };
 
+  const handleAddFamilyMember = async () => {
+    if (!user) return;
+    if (!familyFormData.nama_penuh.trim() || !familyFormData.hubungan) {
+      toast({
+        title: "Ralat",
+        description: "Sila lengkapkan semua maklumat.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('family_members')
+        .insert({
+          user_id: user.id,
+          nama_penuh: familyFormData.nama_penuh.trim(),
+          hubungan: familyFormData.hubungan
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Berjaya!",
+        description: "Ahli keluarga telah ditambah.",
+      });
+
+      setAddFamilyDialogOpen(false);
+      setFamilyFormData({ nama_penuh: "", hubungan: "" });
+      fetchFamilyMembers();
+    } catch (error) {
+      console.error("Error adding family member:", error);
+      toast({
+        title: "Ralat",
+        description: "Gagal menambah ahli keluarga.",
+        variant: "destructive"
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteFamilyMember = async (id: string) => {
+    if (!confirm("Adakah anda pasti mahu memadam ahli keluarga ini?")) return;
+
+    try {
+      const { error } = await supabase
+        .from('family_members')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Berjaya",
+        description: "Ahli keluarga telah dipadam.",
+      });
+      fetchFamilyMembers();
+    } catch (error) {
+      console.error("Error deleting family member:", error);
+      toast({
+        title: "Ralat",
+        description: "Gagal memadam ahli keluarga.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleLogout = async () => {
     await signOut();
     toast({
@@ -143,20 +242,6 @@ const Profil = () => {
         );
     }
   };
-
-  const isAdmin = roles.some(r => ["pengerusi", "bendahari", "ajk"].includes(r.role));
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-primary/20 via-background to-accent/20 flex items-center justify-center">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full"
-        />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/20 via-background to-accent/20 pb-24">
@@ -349,6 +434,100 @@ const Profil = () => {
               </div>
             </div>
           </FloatingCard>
+        </motion.div>
+
+        {/* Family Members Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+        >
+          <div className="flex items-center justify-between mb-3 px-1">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              <Users className="w-5 h-5 text-primary" />
+              Tanggungan / Ahli Keluarga
+            </h3>
+            <Dialog open={addFamilyDialogOpen} onOpenChange={setAddFamilyDialogOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" variant="outline" className="rounded-full h-8 gap-1">
+                  <Plus className="w-3 h-3" />
+                  Tambah
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="rounded-3xl">
+                <DialogHeader>
+                  <DialogTitle>Tambah Ahli Keluarga</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 pt-4">
+                  <div>
+                    <Label htmlFor="family-name">Nama Penuh</Label>
+                    <Input
+                      id="family-name"
+                      value={familyFormData.nama_penuh}
+                      onChange={(e) => setFamilyFormData({ ...familyFormData, nama_penuh: e.target.value })}
+                      placeholder="Nama penuh ahli keluarga"
+                      className="rounded-xl mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="family-relation">Hubungan</Label>
+                    <Select 
+                      value={familyFormData.hubungan} 
+                      onValueChange={(val) => setFamilyFormData({ ...familyFormData, hubungan: val })}
+                    >
+                      <SelectTrigger className="rounded-xl mt-1">
+                        <SelectValue placeholder="Pilih hubungan" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Suami">Suami</SelectItem>
+                        <SelectItem value="Isteri">Isteri</SelectItem>
+                        <SelectItem value="Bapa">Bapa</SelectItem>
+                        <SelectItem value="Ibu">Ibu</SelectItem>
+                        <SelectItem value="Anak">Anak</SelectItem>
+                        <SelectItem value="Adik-beradik">Adik-beradik</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button 
+                    onClick={handleAddFamilyMember} 
+                    className="w-full rounded-xl"
+                    disabled={saving || !familyFormData.nama_penuh.trim() || !familyFormData.hubungan}
+                  >
+                    {saving ? "Menambah..." : "Tambah Ahli Keluarga"}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+
+          <div className="space-y-3">
+            {loadingFamily ? (
+              <div className="text-center py-4 text-muted-foreground text-sm">Memuatkan...</div>
+            ) : familyMembers.length > 0 ? (
+              familyMembers.map((member) => (
+                <FloatingCard key={member.id} className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-foreground">{member.nama_penuh}</p>
+                      <p className="text-sm text-muted-foreground">{member.hubungan}</p>
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="text-muted-foreground hover:text-destructive"
+                      onClick={() => handleDeleteFamilyMember(member.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </FloatingCard>
+              ))
+            ) : (
+              <div className="text-center py-8 border-2 border-dashed rounded-xl bg-muted/20">
+                <p className="text-muted-foreground text-sm">Tiada ahli keluarga ditambah</p>
+              </div>
+            )}
+          </div>
         </motion.div>
 
         {/* Action Buttons */}

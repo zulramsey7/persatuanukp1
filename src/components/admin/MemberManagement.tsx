@@ -50,6 +50,8 @@ import {
 import { Database } from "@/integrations/supabase/types";
 import { format } from "date-fns";
 import { ms } from "date-fns/locale";
+import { Badge } from "@/components/ui/badge";
+import { ROLE_LABELS, USER_ROLES } from "@/lib/constants";
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 type StatusAhli = Database["public"]["Enums"]["status_ahli"];
@@ -198,19 +200,9 @@ const MemberManagement = () => {
         return m;
       }));
 
-      const roleLabels: Record<AppRole, string> = {
-        pengerusi: "Pengerusi",
-        naib_pengerusi: "Naib Pengerusi",
-        setiausaha: "Setiausaha",
-        penolong_setiausaha: "Penolong Setiausaha",
-        bendahari: "Bendahari",
-        ajk: "AJK",
-        ahli: "Ahli Biasa"
-      };
-
       toast({
         title: "Berjaya!",
-        description: `Peranan telah ditukar kepada ${roleLabels[newRole]}`,
+        description: `Peranan telah ditukar kepada ${ROLE_LABELS[newRole]}`,
       });
 
       setRoleDialogOpen(false);

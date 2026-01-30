@@ -137,6 +137,38 @@ export type Database = {
         }
         Relationships: []
       }
+      family_members: {
+        Row: {
+          created_at: string
+          id: string
+          user_id: string
+          nama_penuh: string
+          hubungan: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          user_id: string
+          nama_penuh: string
+          hubungan: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          user_id?: string
+          nama_penuh?: string
+          hubungan?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "family_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       galeri_aktiviti: {
         Row: {
           created_at: string

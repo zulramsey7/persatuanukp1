@@ -5,7 +5,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { FloatingCard } from "@/components/ui/FloatingCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { ROLE_LABELS } from "@/lib/constants";
 import { MobileBottomNav } from "@/components/dashboard/MobileNav";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -37,16 +39,6 @@ interface Member {
   no_ahli?: number;
   roles?: string[];
 }
-
-const ROLE_LABELS: Record<string, string> = {
-  pengerusi: "Pengerusi",
-  naib_pengerusi: "Naib Pengerusi",
-  setiausaha: "Setiausaha",
-  penolong_setiausaha: "Penolong Setiausaha",
-  bendahari: "Bendahari",
-  ajk: "Ahli Jawatankuasa",
-  ahli: "Ahli"
-};
 
 const Direktori = () => {
   const [members, setMembers] = useState<Member[]>([]);
