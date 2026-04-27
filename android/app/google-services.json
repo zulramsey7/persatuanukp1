@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "415636114553",
+    "project_id": "persatuan-up1",
+    "storage_bucket": "persatuan-up1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:415636114553:android:f5affbaf41112420c4d8a8",
+        "android_client_info": {
+          "package_name": "com.persatuanup1.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC0WqXA39RB50rrFK1XjEuf5NKM-YHHLZo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
